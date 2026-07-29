@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AudioContext Fingerprinting Test</title>
+</head>
+<body>
+    <h3>Test: Audio Fingerprinting via AudioContext</h3>
+    <p>Click the button to generate a hash based on your device's audio processing.</p>
+    <p>This hash can be used as a persistent tracking ID across different websites.</p>
+    
+    <button onclick="generateFingerprint()">Generate Audio Fingerprint</button>
+    <pre id="output"></pre>
+
+    <script>
+        function generateFingerprint() {
+            const output = document.getElementById('output');
+            try {
+                // Create an offline audio context
+                const context = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+                
+                // Create an oscillator and compressor
+                const oscillator = context.createOscillator();
+                const compressor = context.createDynamicsCompressor();
+                
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.value = 1000;
+                
+                // Connect the audio graph
+                oscillator.connect(compressor);
+                compressor.connect(context.destination);
+                
+                oscillator.start(0);
+                oscillator.stop(0.1);
+                
+                // Render the audio and extract fingerprint
+                context.startRendering().then(audioBuffer => {
+                    const samples = audioBuffer.getChannelData(0);
+                    
+                    // Take a slice of samples and hash them
+                    let fingerprint = 0;
+                    const step = Math.floor(samples.length / 100);
+                    for (let i = 0; i < 100; i++) {
+                        const sample = samples[i * step];
+                        // Convert float to integer hash
+                        fingerprint = ((fingerprint << 5) - fingerprint) + (sample * 10000 | 0);
+                        fingerprint = fingerprint & fingerprint; // Convert to 32-bit integer
+                    }
+                    
+                    output.textContent = `Audio Fingerprint Hash: ${fingerprint}\n`;
+                    output.textContent += `This value is likely unique to your hardware/OS combination.`;
+                });
+            } catch (e) {
+                output.textContent = `Error: ${e.message}\nAudioContext may not be supported.`;
+            }
+        }
+    </script>
+</body>
+</html>
