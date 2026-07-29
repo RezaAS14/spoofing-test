@@ -1,71 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Voice Spoofing POC</title>
+    <title>Speech Timing Attack</title>
 </head>
 <body>
-    <h3>Test: Synthetic Voice Spoofing</h3>
-    <button onclick="playFakeAlert()">▶ Play Fake System Alert</button>
+    <h3>Test: SpeechSynthesis Timing Fingerprinting</h3>
+    <button onclick="runTimingAttack()">▶ Run Timing Test</button>
     <pre id="output"></pre>
 
     <script>
-        function playFakeAlert() {
+        async function runTimingAttack() {
             const output = document.getElementById('output');
-            
-            // Coba dapatkan suara yang terdengar seperti sistem
-            const voices = speechSynthesis.getVoices();
-            let systemVoice = null;
-            
-            // Cari suara yang terdengar "resmi"
-            for (const voice of voices) {
-                const name = voice.name.toLowerCase();
-                if (name.includes('samantha') || name.includes('alex') || 
-                    name.includes('david') || name.includes('zira') ||
-                    name.includes('google') || name.includes('siri')) {
-                    systemVoice = voice;
-                    break;
+            output.textContent = '⏳ Mengukur waktu speech synthesis...\n';
+
+            try {
+                const testPhrases = [
+                    'a', 
+                    'hello world', 
+                    'the quick brown fox jumps over the lazy dog',
+                    'Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua'
+                ];
+
+                const results = [];
+
+                for (const phrase of testPhrases) {
+                    const startTime = performance.now();
+                    
+                    await new Promise((resolve, reject) => {
+                        const utter = new SpeechSynthesisUtterance(phrase);
+                        utter.onend = () => {
+                            const endTime = performance.now();
+                            results.push({
+                                phrase: phrase,
+                                duration: endTime - startTime
+                            });
+                            resolve();
+                        };
+                        utter.onerror = (e) => {
+                            reject(e);
+                        };
+                        speechSynthesis.speak(utter);
+                    });
                 }
-            }
 
-            // Pesan yang terdengar seperti peringatan sistem
-            const fakeMessage = "Warning! Your computer has been compromised. Please call our support number immediately.";
-            
-            const utter = new SpeechSynthesisUtterance(fakeMessage);
-            if (systemVoice) utter.voice = systemVoice;
-            utter.rate = 0.9;
-            utter.pitch = 1.0;
-            
-            speechSynthesis.speak(utter);
+                // Hitung fingerprint dari timing
+                const timingSignature = results.map(r => Math.round(r.duration)).join('-');
+                const hash = simpleHash(timingSignature);
 
-            output.textContent = `
+                output.textContent = `
 ╔═══════════════════════════════════════════════════════════════╗
-║           VOICE SOCIAL ENGINEERING SPOOFING                  ║
+║           SPEECH TIMING FINGERPRINT REPORT                   ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║ 📢 FAKE SYSTEM ALERT PLAYED:                                 ║
-║   "${fakeMessage}"                                           ║
+║ ⏱️ TIMING RESULTS (ms):                                       ║
+${results.map(r => `   "${r.phrase}" → ${Math.round(r.duration)}ms`).join('\n')}
 ║                                                              ║
-║ 🎤 VOICE USED:                                               ║
-║   ${systemVoice ? systemVoice.name : 'Default voice'}        ║
-║   Language: ${systemVoice ? systemVoice.lang : 'default'}    ║
+║ 🆔 TIMING SIGNATURE:                                         ║
+║   ${timingSignature}                                         ║
 ║                                                              ║
-║ ⚠️ EXPLOIT SCENARIO:                                         ║
-║   - Halaman web berbahaya memutar suara yang meniru          ║
-║     peringatan sistem                                         ║
-║   - Pengguna yang tidak curiga mungkin mengikuti instruksi   ║
-║   - Dapat digunakan untuk phishing via suara                 ║
+║ 🔑 FINGERPRINT HASH:                                         ║
+║   ${hash}                                                    ║
 ║                                                              ║
-║ 🛡️ MITIGASI:                                                 ║
-║   - Browser seharusnya meminta izin untuk speech synthesis   ║
-║   - Saat ini TIDAK ADA izin yang diperlukan                  ║
+║ ⚠️ PRIVACY RISK:                                             ║
+║   - Timing bervariasi berdasarkan CPU speed                 ║
+║   - Dapat digunakan bersama fingerprinting lain              ║
+║   - Tidak memerlukan izin                                   ║
 ║                                                              ║
 ╚═══════════════════════════════════════════════════════════════╝
-            `;
+                `.trim();
+
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}`;
+            }
         }
 
-        // Refresh voices
-        if (speechSynthesis.getVoices().length === 0) {
-            speechSynthesis.onvoiceschanged = () => {};
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash);
         }
     </script>
 </body>
