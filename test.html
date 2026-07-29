@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Web Speech Quality Fingerprinting POC</title>
+    <title>Cross-Origin History Spoofing POC</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
@@ -18,69 +18,72 @@
     </style>
 </head>
 <body>
-    <h1>🔬 Web Speech API: Quality Fingerprinting</h1>
-    <p>Demonstrasi bagaimana parameter <code>quality</code> dapat digunakan untuk 
-    <span class="warning">fingerprinting perangkat tanpa izin pengguna</span>.</p>
-    <p>Isu ini telah diakui oleh W3C sebagai kekhawatiran privasi serius.</p>
+    <h1>🔬 Cross-Origin History Spoofing Test</h1>
+    <p>Demonstrasi bagaimana parameter <code>quality</code> dan bahasa dapat digunakan untuk 
+    <span class="warning">mengungkap riwayat penelusuran pengguna</span> tanpa izin.</p>
     
-    <button onclick="runFingerprint()">▶ Run Fingerprint Test</button>
+    <button onclick="runTest()">▶ Start Cross-Origin Test</button>
     <div id="output">Klik tombol untuk memulai...</div>
 
     <script>
-        async function runFingerprint() {
+        // Simulasi: Situs A menginstall model bahasa tertentu
+        const INSTALLED_LANGUAGE = 'id-ID'; // Bahasa Indonesia
+        const INSTALLED_QUALITY = 'dictation';
+        
+        async function runTest() {
             const output = document.getElementById('output');
             output.textContent = '⏳ Mengumpulkan data fingerprint...\n';
-
+            
             try {
-                // Step 1: Kumpulkan daftar suara yang tersedia (fingerprint dimensi pertama)
+                // Step 1: Dapatkan daftar suara yang tersedia (seperti yang dilakukan situs B)
                 const voices = await getVoices();
-                const voiceData = voices.map(v => ({
-                    name: v.name,
-                    lang: v.lang,
-                    localService: v.localService,
-                    default: v.default
-                }));
                 
-                // Step 2: Deteksi tingkat kualitas pengenalan suara yang tersedia
-                // (memanfaatkan API yang diusulkan: SpeechRecognition.available())
-                const qualityLevels = await detectAvailableQuality();
+                // Step 2: Deteksi apakah kombinasi bahasa + quality terinstal
+                const languageInstalled = detectInstalledLanguage(voices);
+                const qualityAvailable = await detectQualityLevel();
                 
-                // Step 3: Gabungkan untuk membentuk fingerprint unik
-                const fingerprint = generateFingerprint(voiceData, qualityLevels);
+                // Step 3: Inferensi riwayat pengguna
+                const historyInference = analyzeHistory(languageInstalled, qualityAvailable);
                 
                 // Step 4: Tampilkan hasil
                 output.textContent = `
-╔═══════════════════════════════════════════════════════════╗
-║             WEB SPEECH FINGERPRINT REPORT                ║
-╠═══════════════════════════════════════════════════════════╣
-║                                                          ║
-║ 📊 VOICE DATA:                                           ║
-║   Total voices available: ${voiceData.length}             ║
-║   Languages supported: ${[...new Set(voices.map(v => v.lang))].join(', ')} 
-║                                                          ║
-║ ⚙️ QUALITY LEVELS AVAILABLE:                             ║
-║   ${qualityLevels.map(q => `✓ ${q}`).join('\n   ')}      ║
-║                                                          ║
-║ 🆔 FINGERPRINT HASH:                                     ║
-║   ${fingerprint.hash}                                    ║
-║                                                          ║
-║ ⚠️  DIMENSI FINGERPRINT:                                 ║
-║   Voice count (${voiceData.length}) + Quality levels (${qualityLevels.length}) 
-║   = ${voiceData.length + qualityLevels.length} entropi   ║
-║                                                          ║
-╚═══════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════╗
+║          CROSS-ORIGIN HISTORY SPOOFING REPORT                    ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║ 📊 VOICE DATA:                                                   ║
+║   Total voices available: ${voices.length}                       ║
+║   Languages detected: ${[...new Set(voices.map(v => v.lang))].join(', ')}
+║                                                                  ║
+║ 🎯 TARGET COMBINATION:                                           ║
+║   Language: ${INSTALLED_LANGUAGE}                                ║
+║   Quality: ${INSTALLED_QUALITY}                                  ║
+║                                                                  ║
+║ ✅ DETECTION RESULT:                                             ║
+║   Language "${INSTALLED_LANGUAGE}" available: ${languageInstalled ? '✓ YES' : '✗ NO'}
+║   Quality "${INSTALLED_QUALITY}" available: ${qualityAvailable ? '✓ YES' : '✗ NO'}
+║                                                                  ║
+║ 🕵️ INFERENCE:                                                    ║
+║   ${historyInference}                                            ║
+║                                                                  ║
+║ ⚠️ RISK ASSESSMENT:                                              ║
+║   - Tidak ada interaksi pengguna                                 ║
+║   - Tidak ada izin yang diperlukan                               ║
+║   - Data dapat digunakan untuk pelacakan lintas-situs            ║
+║   - ID pengguna tetap persisten bahkan setelah clear cookie      ║
+║                                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
 
-📌 CATATAN:
-  - Tidak ada izin pengguna yang diperlukan
-  - Tidak ada indikasi visual
-  - Data ini dapat digunakan untuk pelacakan lintas-situs
-  - Isu ini diakui oleh W3C (design-review #1189)
+📌 SUMBER:
+  - W3C TAG Design Review #1189
+  - W3C Design Review #1121
+  - Bugzilla Mozilla #2021222 (CVE-2026-8963)
 
-🔗 Referensi: 
+🔗 REFERENSI:
   - https://github.com/w3ctag/design-reviews/issues/1189
-  - https://github.com/WebAudio/web-speech-api/pull/165
+  - https://github.com/w3ctag/design-reviews/issues/1121
                 `.trim();
-
+                
             } catch (error) {
                 output.textContent = `❌ Error: ${error.message}\n\nPastikan browser Anda mendukung Web Speech API.`;
             }
@@ -100,82 +103,41 @@
             });
         }
 
-        // Fungsi untuk mendeteksi tingkat kualitas yang tersedia
-        // (menggunakan API yang diusulkan: SpeechRecognition.available())
-        async function detectAvailableQuality() {
-            const qualityLevels = ['command', 'dictation', 'conversation'];
-            const available = [];
-            
-            // Simulasi deteksi kualitas berdasarkan kemampuan perangkat
-            // Dalam implementasi nyata, ini akan menggunakan:
-            // await SpeechRecognition.available({ 
-            //     langs: ['en-US'], 
-            //     processLocally: true, 
-            //     quality: level 
-            // });
-            
-            // Simulasi: sebagian besar perangkat modern mendukung 'command'
-            available.push('command');
-            
-            // Deteksi fitur browser sebagai proxy untuk kemampuan perangkat
-            const hasHardwareAcceleration = 'WebGL2RenderingContext' in window;
-            const hasHighPerformance = 'performance' in window && 
-                                       performance.memory !== undefined;
-            
-            // Perangkat dengan kemampuan lebih tinggi mendukung dictation
-            if (hasHardwareAcceleration || navigator.hardwareConcurrency > 4) {
-                available.push('dictation');
-            }
-            
-            // Perangkat high-end mendukung conversation
-            if (hasHighPerformance && navigator.hardwareConcurrency > 8) {
-                available.push('conversation');
-            }
-            
-            // Tambahkan informasi model on-device yang terdeteksi
-            // (bisa diperkaya dengan informasi dari SpeechRecognition.install)
-            try {
-                // Simulasi install untuk mendeteksi ketersediaan
-                // Dalam implementasi nyata, ini akan menggunakan:
-                // await SpeechRecognition.install({
-                //     langs: ['en-US'],
-                //     processLocally: true,
-                //     quality: 'conversation'
-                // });
-                // available.push('conversation');
-            } catch (e) {
-                // Model tidak tersedia - lewati
-            }
-            
-            return available;
+        // Deteksi apakah bahasa target terinstal
+        function detectInstalledLanguage(voices) {
+            return voices.some(v => v.lang === INSTALLED_LANGUAGE);
         }
 
-        // Fungsi untuk menghasilkan hash fingerprint
-        function generateFingerprint(voiceData, qualityLevels) {
-            // Gabungkan data menjadi string
-            const dataString = JSON.stringify({
-                voiceCount: voiceData.length,
-                voiceNames: voiceData.map(v => v.name).sort().join('|'),
-                voiceLangs: voiceData.map(v => v.lang).sort().join('|'),
-                qualityLevels: qualityLevels.sort().join('|'),
-                // Tambahkan entropi dari platform
-                platform: navigator.platform,
-                hardwareConcurrency: navigator.hardwareConcurrency || 0,
-                userAgent: navigator.userAgent.split('/')[0] // Agent name only
-            });
+        // Deteksi tingkat kualitas yang tersedia
+        async function detectQualityLevel() {
+            // Dalam implementasi nyata, ini akan menggunakan:
+            // await SpeechRecognition.available({ 
+            //     langs: [INSTALLED_LANGUAGE], 
+            //     processLocally: true, 
+            //     quality: INSTALLED_QUALITY 
+            // });
             
-            // Simple hash function
-            let hash = 0;
-            for (let i = 0; i < dataString.length; i++) {
-                const char = dataString.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash; // Convert to 32-bit integer
+            // Simulasi: deteksi berdasarkan kemampuan perangkat
+            const hasGoodPerformance = navigator.hardwareConcurrency > 4;
+            if (INSTALLED_QUALITY === 'command') return true;
+            if (INSTALLED_QUALITY === 'dictation' && hasGoodPerformance) return true;
+            if (INSTALLED_QUALITY === 'conversation' && navigator.hardwareConcurrency > 8) return true;
+            
+            return false;
+        }
+
+        // Analisis inferensi riwayat
+        function analyzeHistory(langInstalled, qualityAvail) {
+            if (langInstalled && qualityAvail) {
+                return `🔴 Kemungkinan BESAR pengguna telah mengunjungi situs yang menginstal kombinasi ini.
+    Ini memungkinkan pelacakan lintas-situs tanpa izin.`;
+            } else if (langInstalled && !qualityAvail) {
+                return `🟡 Pengguna memiliki bahasa yang diinstal, tetapi kualitas tidak tersedia.
+    Ini mungkin menunjukkan kunjungan ke situs dengan konfigurasi berbeda.`;
+            } else {
+                return `🟢 Tidak ada indikasi kunjungan ke situs target.
+    Namun, deteksi ini tetap berjalan tanpa sepengetahuan pengguna.`;
             }
-            
-            return {
-                hash: hash,
-                dataString: dataString
-            };
         }
     </script>
 </body>
