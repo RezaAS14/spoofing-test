@@ -1,87 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Speech Timing Attack</title>
+    <title>Audibility Spoofing Test</title>
 </head>
 <body>
-    <h3>Test: SpeechSynthesis Timing Fingerprinting</h3>
-    <button onclick="runTimingAttack()">▶ Run Timing Test</button>
-    <pre id="output"></pre>
+    <h3>Test: Silent Speech Synthesis</h3>
+    <p>Click the button below and observe the speaker icon on your browser tab.</p>
+    
+    <button onclick="silentSpoof()">Start Silent Spoofing</button>
 
     <script>
-        async function runTimingAttack() {
-            const output = document.getElementById('output');
-            output.textContent = '⏳ Mengukur waktu speech synthesis...\n';
-
-            try {
-                const testPhrases = [
-                    'a', 
-                    'hello world', 
-                    'the quick brown fox jumps over the lazy dog',
-                    'Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua'
-                ];
-
-                const results = [];
-
-                for (const phrase of testPhrases) {
-                    const startTime = performance.now();
-                    
-                    await new Promise((resolve, reject) => {
-                        const utter = new SpeechSynthesisUtterance(phrase);
-                        utter.onend = () => {
-                            const endTime = performance.now();
-                            results.push({
-                                phrase: phrase,
-                                duration: endTime - startTime
-                            });
-                            resolve();
-                        };
-                        utter.onerror = (e) => {
-                            reject(e);
-                        };
-                        speechSynthesis.speak(utter);
-                    });
-                }
-
-                // Hitung fingerprint dari timing
-                const timingSignature = results.map(r => Math.round(r.duration)).join('-');
-                const hash = simpleHash(timingSignature);
-
-                output.textContent = `
-╔═══════════════════════════════════════════════════════════════╗
-║           SPEECH TIMING FINGERPRINT REPORT                   ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                              ║
-║ ⏱️ TIMING RESULTS (ms):                                       ║
-${results.map(r => `   "${r.phrase}" → ${Math.round(r.duration)}ms`).join('\n')}
-║                                                              ║
-║ 🆔 TIMING SIGNATURE:                                         ║
-║   ${timingSignature}                                         ║
-║                                                              ║
-║ 🔑 FINGERPRINT HASH:                                         ║
-║   ${hash}                                                    ║
-║                                                              ║
-║ ⚠️ PRIVACY RISK:                                             ║
-║   - Timing bervariasi berdasarkan CPU speed                 ║
-║   - Dapat digunakan bersama fingerprinting lain              ║
-║   - Tidak memerlukan izin                                   ║
-║                                                              ║
-╚═══════════════════════════════════════════════════════════════╝
-                `.trim();
-
-            } catch (error) {
-                output.textContent = `❌ Error: ${error.message}`;
-            }
-        }
-
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
-            }
-            return Math.abs(hash);
+        function silentSpoof() {
+            const utter = new SpeechSynthesisUtterance('This is a secret inaudible message.');
+            utter.volume = 0.0; // Kunci dari kerentanan
+            speechSynthesis.speak(utter);
+            console.log('Speech synthesis with volume 0.0 has started.');
+            alert('Check your browser tab! It should show a speaker icon, even though no sound is playing.');
         }
     </script>
 </body>
