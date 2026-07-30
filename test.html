@@ -1,93 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Blob URI Spoofing Demo</title>
+    <title>FROST Attack Demo - POC</title>
     <style>
-        body { font-family: Arial; padding: 20px; max-width: 600px; margin: 0 auto; text-align: center; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-        #output { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; text-align: left; }
-        .warning { color: #c0392b; font-weight: bold; }
+        body { font-family: Arial; padding: 20px; max-width: 700px; margin: 0 auto; background: #0a0a1a; color: #e0e0e0; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #00ff88; color: #0a0a1a; border: none; border-radius: 4px; font-weight: bold; }
+        #output { background: #1a1a2e; color: #00ff88; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; font-size: 13px; border: 1px solid #333; }
+        .warning { color: #ff6b6b; font-weight: bold; }
+        .info { background: #1a2a3a; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #00ff88; }
+        h1 { color: #00ff88; }
+        .highlight { color: #ffd93d; }
     </style>
 </head>
 <body>
-    <h1>🔬 Blob URI Address Bar Spoofing</h1>
-    <p>Demo bagaimana <code>blob:</code> URI dapat digunakan untuk <span class="warning">menyembunyikan asal sebenarnya</span> 
-    dari sebuah halaman di address bar.</p>
+    <h1>🔬 FROST Attack - Proof of Concept</h1>
+    <div class="info">
+        <strong>⚠️ STATUS:</strong> <span class="warning">BELUM ADA CVE</span> — 
+        Google, Mozilla, dan Apple telah diberitahu tetapi <span class="warning">tidak menganggap ini sebagai security vulnerability</span> [citation:3]
+    </div>
+    <p>Demo ini <span class="highlight">mensimulasikan</span> bagaimana situs web dapat melacak 
+    aplikasi yang sedang berjalan hanya dari timing SSD menggunakan OPFS.</p>
     
-    <button onclick="spoofBlob()">▶ Open Spoofed Blob Page</button>
-    <div id="output">Klik tombol untuk membuka halaman phishing dalam blob</div>
+    <button onclick="runFROSTDemo()">▶ Start FROST Simulation</button>
+    <div id="output">Klik tombol untuk memulai simulasi...</div>
 
     <script>
-        function spoofBlob() {
+        async function runFROSTDemo() {
             const output = document.getElementById('output');
-            
-            // HTML phishing yang akan disimpan sebagai blob
-            const phishingHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Microsoft Account</title>
-                <style>
-                    body { font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
-                    .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
-                    h1 { font-size: 24px; color: #333; }
-                    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-                    button { width: 100%; padding: 12px; background: #0078d4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
-                    button:hover { background: #106ebe; }
-                    .footer { font-size: 12px; color: #666; margin-top: 20px; }
-                    .warning-demo { background: #fff3cd; padding: 10px; border-radius: 4px; font-size: 12px; color: #856404; }
-                </style>
-            </head>
-            <body>
-                <div class="login-box">
-                    <h1>🔐 Sign in</h1>
-                    <p>Enter your Microsoft account credentials</p>
-                    <input type="text" placeholder="Email, phone, or Skype">
-                    <input type="password" placeholder="Password">
-                    <button onclick="alert('⚠️ Demo: Kredensial Anda akan dicuri!')">Sign in</button>
-                    <div class="warning-demo">
-                        ⚠️ INI ADALAH DEMO PHISHING - Jangan masukkan kredensial asli!
-                    </div>
-                    <div class="footer">Perhatikan address bar: ini adalah blob: URI, bukan situs Microsoft asli</div>
-                </div>
-            </body>
-            </html>
-            `;
+            output.textContent = '⏳ Memulai simulasi FROST attack...\n';
 
-            // Buat blob dari HTML
-            const blob = new Blob([phishingHTML], { type: 'text/html' });
-            const blobURL = URL.createObjectURL(blob);
+            try {
+                // Simulasi pembuatan file OPFS > RAM
+                const fileSize = 1024 * 1024 * 100; // 100MB simulasi
+                const largeData = new Uint8Array(fileSize);
+                
+                output.textContent += '📁 Membuat file OPFS berukuran 100MB (simulasi)...\n';
+                output.textContent += '   (Dalam serangan nyata: file dibuat > kapasitas RAM)\n\n';
+                
+                // Simulasi repeated reads dan pengukuran timing
+                const timings = [];
+                const iterations = 50;
+                
+                output.textContent += `⏱️ Melakukan ${iterations} pengukuran timing...\n`;
+                
+                for (let i = 0; i < iterations; i++) {
+                    const start = performance.now();
+                    const index = Math.floor(Math.random() * fileSize);
+                    const _value = largeData[index] || 0;
+                    const end = performance.now();
+                    timings.push(end - start);
+                }
 
-            // Buka di tab baru
-            const newWindow = window.open(blobURL, '_blank');
-            
-            if (newWindow) {
-                output.textContent = `
-╔═══════════════════════════════════════════════════════════════════╗
-║                    BLOB URI SPOOFING REPORT                      ║
-╠═══════════════════════════════════════════════════════════════════╣
-║                                                                  ║
-║ 🔗 BLOB URL:                                                     ║
-║   ${blobURL}                                                     ║
-║                                                                  ║
-║ 🎯 TEKNIK SPOOFING:                                              ║
-║   - Halaman phishing disimpan sebagai blob di memori lokal       ║
-║   - Address bar menampilkan blob:https://[origin]/...           ║
-║   - Asal sebenarnya (halaman local) tersembunyi                 ║
-║                                                                  ║
-║ 📊 STATUS KERENTANAN:                                            ║
-║   - CVE-2025-8364: Firefox Android (FIXED)                      ║
-║   - Browser lain: MASIH RENTAN terhadap varian teknik ini       ║
-║   - Digunakan dalam kampanye phishing nyata sejak 2022          ║
-║                                                                  ║
-║ 📚 REFERENSI:                                                    ║
-║   - CVE-2025-8364[citation:3]                                   ║
-║   - Cofense Blog: Using Blob URLs to Bypass SEGs[citation:8]    ║
-║                                                                  ║
-╚═══════════════════════════════════════════════════════════════════╝
-                `.trim();
-            } else {
-                output.textContent = '❌ Gagal membuka window. Mungkin diblokir oleh browser.';
+                // Analisis timing
+                const avgTiming = timings.reduce((a, b) => a + b, 0) / timings.length;
+                const minTiming = Math.min(...timings);
+                const maxTiming = Math.max(...timings);
+                const stdDev = Math.sqrt(timings.reduce((a, b) => a + Math.pow(b - avgTiming, 2), 0) / timings.length);
+
+                // Simulasi deteksi aktivitas
+                const hasActivity = maxTiming > avgTiming * 1.5;
+                const activityType = hasActivity ? 
+                    '🔴 <span class="warning">DETEKSI: Aktivitas aplikasi/situs lain terdeteksi!</span>' : 
+                    '🟢 Tidak ada aktivitas signifikan terdeteksi';
+
+                output.innerHTML += `
+╔═══════════════════════════════════════════════════════════════════════╗
+║                        FROST ATTACK REPORT                           ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║ 📊 TIMING STATISTICS (ms):                                           ║
+║   Average: ${avgTiming.toFixed(3)}ms                                  ║
+║   Minimum: ${minTiming.toFixed(3)}ms                                  ║
+║   Maximum: ${maxTiming.toFixed(3)}ms                                  ║
+║   Std Dev: ${stdDev.toFixed(3)}ms                                     ║
+║                                                                      ║
+║ 🎯 DETECTION:                                                        ║
+║   ${activityType}                                                    ║
+║                                                                      ║
+║ ⚠️ KERENTANAN:                                                       ║
+║   - Menggunakan OPFS (Origin Private File System)                   ║
+║   - Tidak memerlukan izin pengguna                                  ║
+║   - Berjalan di latar belakang tanpa indikasi                       ║
+║   - Akurasi: 88.95% untuk top 50 situs web                         ║
+║   - Akurasi: 95.83% untuk aplikasi macOS native                     ║
+║                                                                      ║
+║ 📌 STATUS CVE:                                                       ║
+║   ❌ <span class="warning">BELUM ADA CVE</span>                                                ║
+║   Google: Tidak dianggap sebagai security vulnerability            ║
+║   Apple: Dianggap "out of scope"                                   ║
+║   Mozilla: Mengakui tetapi belum ada fix                          ║
+║                                                                      ║
+║ 🔗 REFERENSI:                                                        ║
+║   - Paper: DIMVA 2026                                               ║
+║   - The Hacker News (June 2026)                                    ║
+║                                                                      ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+📋 <span class="highlight">CARA KERJA FROST</span>:
+1. Situs membuka OPFS dan membuat file > kapasitas RAM
+2. File dibaca berulang kali dengan JavaScript
+3. Waktu baca diukur dengan performance.now()
+4. Saat aplikasi/situs lain mengakses drive yang sama, timing berubah
+5. Neural network mengidentifikasi aktivitas dari pola timing
+
+🛡️ <span class="highlight">MITIGASI SEMENTARA</span>:
+- Tutup tab setelah selesai menggunakan situs
+- Sistem Linux dengan profile-sync-daemon terlindungi secara kebetulan [citation:3]
+- Browser perlu: membatasi OPFS, throttling high-res timers, atau permission prompt [citation:3]
+                `;
+
+                if (hasActivity) {
+                    const apps = ['Chrome', 'Spotify', 'Discord', 'Finder', 'Terminal', 'Safari', 'VS Code'];
+                    const detected = apps[Math.floor(Math.random() * apps.length)];
+                    output.innerHTML += `\n\n🔍 <span class="highlight">SIMULASI:</span> Aktivitas terdeteksi → kemungkinan besar "${detected}" sedang berjalan.`;
+                }
+
+            } catch (error) {
+                output.textContent = `❌ Error: ${error.message}\n\nFitur OPFS mungkin belum didukung sepenuhnya di browser ini.`;
             }
         }
     </script>
