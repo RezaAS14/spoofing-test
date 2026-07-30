@@ -1,55 +1,95 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Long Subdomain Spoofing Demo</title>
+    <title>Blob URI Spoofing Demo</title>
     <style>
         body { font-family: Arial; padding: 20px; max-width: 600px; margin: 0 auto; text-align: center; }
-        .fake-addressbar { 
-            background: #f0f0f0; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin: 20px 0;
-            border: 1px solid #ccc;
-            font-family: monospace;
-            font-size: 14px;
-            word-break: break-all;
-        }
-        .fake-content {
-            border: 1px solid #ddd;
-            padding: 40px;
-            border-radius: 8px;
-            background: #fff;
-        }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        #output { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; text-align: left; }
         .warning { color: #c0392b; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>🔬 Long Subdomain Spoofing Demo</h1>
-    <p>Halaman ini mendemonstrasikan bagaimana browser <span class="warning">memotong URL panjang</span> 
-    dan hanya menampilkan prefix palsu.</p>
+    <h1>🔬 Blob URI Address Bar Spoofing</h1>
+    <p>Demo bagaimana <code>blob:</code> URI dapat digunakan untuk <span class="warning">menyembunyikan asal sebenarnya</span> 
+    dari sebuah halaman di address bar.</p>
+    
+    <button onclick="spoofBlob()">▶ Open Spoofed Blob Page</button>
+    <div id="output">Klik tombol untuk membuka halaman phishing dalam blob</div>
 
-    <div class="fake-addressbar">
-        🔒 https://accounts.google.com.login.secure.verify.your-account-now.very-long-prefix-that-will-be-truncated.malicious-site.com
-    </div>
+    <script>
+        function spoofBlob() {
+            const output = document.getElementById('output');
+            
+            // HTML phishing yang akan disimpan sebagai blob
+            const phishingHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Microsoft Account</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+                    .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
+                    h1 { font-size: 24px; color: #333; }
+                    input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+                    button { width: 100%; padding: 12px; background: #0078d4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+                    button:hover { background: #106ebe; }
+                    .footer { font-size: 12px; color: #666; margin-top: 20px; }
+                    .warning-demo { background: #fff3cd; padding: 10px; border-radius: 4px; font-size: 12px; color: #856404; }
+                </style>
+            </head>
+            <body>
+                <div class="login-box">
+                    <h1>🔐 Sign in</h1>
+                    <p>Enter your Microsoft account credentials</p>
+                    <input type="text" placeholder="Email, phone, or Skype">
+                    <input type="password" placeholder="Password">
+                    <button onclick="alert('⚠️ Demo: Kredensial Anda akan dicuri!')">Sign in</button>
+                    <div class="warning-demo">
+                        ⚠️ INI ADALAH DEMO PHISHING - Jangan masukkan kredensial asli!
+                    </div>
+                    <div class="footer">Perhatikan address bar: ini adalah blob: URI, bukan situs Microsoft asli</div>
+                </div>
+            </body>
+            </html>
+            `;
 
-    <div class="fake-content">
-        <h2>✅ Google Account Verification</h2>
-        <p>Please sign in to verify your account.</p>
-        <input type="text" placeholder="Email or phone" style="width: 80%; padding: 10px; margin: 5px;"><br>
-        <input type="password" placeholder="Password" style="width: 80%; padding: 10px; margin: 5px;"><br>
-        <button style="padding: 10px 30px; background: #4285f4; color: white; border: none; border-radius: 4px; margin-top: 10px;">Sign in</button>
-        <p style="font-size: 12px; color: gray; margin-top: 20px;">⚠️ Demo: Halaman ini palsu untuk tujuan edukasi</p>
-    </div>
+            // Buat blob dari HTML
+            const blob = new Blob([phishingHTML], { type: 'text/html' });
+            const blobURL = URL.createObjectURL(blob);
 
-    <div style="margin-top: 20px; text-align: left; background: #fff3cd; padding: 15px; border-radius: 8px;">
-        <h4>📋 Penjelasan Teknis:</h4>
-        <ul>
-            <li>Browser memotong URL panjang di address bar</li>
-            <li>Bagian awal URL <code>accounts.google.com</code> tetap terlihat</li>
-            <li>Domain sebenarnya <code>malicious-site.com</code> tersembunyi di ujung URL</li>
-            <li>Tidak ada indikasi visual bahwa ini adalah halaman palsu</li>
-        </ul>
-        <p><strong>Referensi:</strong> CVE-2026-44659, Penelitian Address Bar Spoofing Taxonomy[citation:2][citation:11]</p>
-    </div>
+            // Buka di tab baru
+            const newWindow = window.open(blobURL, '_blank');
+            
+            if (newWindow) {
+                output.textContent = `
+╔═══════════════════════════════════════════════════════════════════╗
+║                    BLOB URI SPOOFING REPORT                      ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║ 🔗 BLOB URL:                                                     ║
+║   ${blobURL}                                                     ║
+║                                                                  ║
+║ 🎯 TEKNIK SPOOFING:                                              ║
+║   - Halaman phishing disimpan sebagai blob di memori lokal       ║
+║   - Address bar menampilkan blob:https://[origin]/...           ║
+║   - Asal sebenarnya (halaman local) tersembunyi                 ║
+║                                                                  ║
+║ 📊 STATUS KERENTANAN:                                            ║
+║   - CVE-2025-8364: Firefox Android (FIXED)                      ║
+║   - Browser lain: MASIH RENTAN terhadap varian teknik ini       ║
+║   - Digunakan dalam kampanye phishing nyata sejak 2022          ║
+║                                                                  ║
+║ 📚 REFERENSI:                                                    ║
+║   - CVE-2025-8364[citation:3]                                   ║
+║   - Cofense Blog: Using Blob URLs to Bypass SEGs[citation:8]    ║
+║                                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
+                `.trim();
+            } else {
+                output.textContent = '❌ Gagal membuka window. Mungkin diblokir oleh browser.';
+            }
+        }
+    </script>
 </body>
 </html>
