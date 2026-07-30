@@ -1,52 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>UI Deception via Silent Speech Demo</title>
+    <title>Long Subdomain Spoofing Demo</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 600px; margin: 0 auto; text-align: center; }
+        .fake-addressbar { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .fake-content {
+            border: 1px solid #ddd;
+            padding: 40px;
+            border-radius: 8px;
+            background: #fff;
+        }
+        .warning { color: #c0392b; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h3>UI Deception via Silent Speech Synthesis</h3>
-    <p>Klik tombol di bawah. Halaman ini akan mencoba memicu speech synthesis dan membuka halaman lain di latar belakang.</p>
-    <p>Ini hanya demonstrasi konsep untuk tujuan pengujian.</p>
+    <h1>🔬 Long Subdomain Spoofing Demo</h1>
+    <p>Halaman ini mendemonstrasikan bagaimana browser <span class="warning">memotong URL panjang</span> 
+    dan hanya menampilkan prefix palsu.</p>
 
-    <button onclick="startDeception()">▶ Mulai Demo</button>
+    <div class="fake-addressbar">
+        🔒 https://accounts.google.com.login.secure.verify.your-account-now.very-long-prefix-that-will-be-truncated.malicious-site.com
+    </div>
 
-    <script>
-        function startDeception() {
-            // 1. Memicu speech synthesis senyap
-            // Di browser versi terbaru, ini mungkin tidak menampilkan ikon speaker,
-            // tetapi menunjukkan bagaimana API dapat digunakan tanpa sepengetahuan pengguna.
-            const utter = new SpeechSynthesisUtterance('Ini adalah pesan rahasia.');
-            utter.volume = 0.0; // Senyap
-            speechSynthesis.speak(utter);
-            console.log('Speech synthesis senyap telah dimulai.');
+    <div class="fake-content">
+        <h2>✅ Google Account Verification</h2>
+        <p>Please sign in to verify your account.</p>
+        <input type="text" placeholder="Email or phone" style="width: 80%; padding: 10px; margin: 5px;"><br>
+        <input type="password" placeholder="Password" style="width: 80%; padding: 10px; margin: 5px;"><br>
+        <button style="padding: 10px 30px; background: #4285f4; color: white; border: none; border-radius: 4px; margin-top: 10px;">Sign in</button>
+        <p style="font-size: 12px; color: gray; margin-top: 20px;">⚠️ Demo: Halaman ini palsu untuk tujuan edukasi</p>
+    </div>
 
-            // 2. Membuka pop-under (halaman lain di tab baru)
-            // Membuka halaman tentang:blank sebagai contoh. Dalam skenario nyata,
-            // ini bisa berupa halaman login palsu atau peringatan sistem.
-            const newWindow = window.open('about:blank', '_blank');
-            if (newWindow) {
-                // Menulis konten palsu ke halaman baru
-                newWindow.document.write(`
-                    <html>
-                    <head><title>⚠️ Peringatan Keamanan</title></head>
-                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                        <h1 style="color: red;">⚠️ Sesi Anda Telah Kadaluwarsa</h1>
-                        <p>Silakan masukkan kredensial Anda untuk masuk kembali.</p>
-                        <form>
-                            <input type="text" placeholder="Username" style="padding: 10px; margin: 10px;"><br>
-                            <input type="password" placeholder="Password" style="padding: 10px; margin: 10px;"><br>
-                            <button type="submit" style="padding: 10px 20px;">Masuk</button>
-                        </form>
-                        <p style="font-size: 12px; color: gray;">Ini adalah halaman palsu untuk demonstrasi.</p>
-                    </body>
-                    </html>
-                `);
-                newWindow.document.close(); // Selesai menulis
-                alert('Demo selesai. Periksa tab browser Anda untuk melihat pop-under yang terbuka.');
-            } else {
-                alert('Gagal membuka pop-under. Mungkin diblokir oleh browser Anda.');
-            }
-        }
-    </script>
+    <div style="margin-top: 20px; text-align: left; background: #fff3cd; padding: 15px; border-radius: 8px;">
+        <h4>📋 Penjelasan Teknis:</h4>
+        <ul>
+            <li>Browser memotong URL panjang di address bar</li>
+            <li>Bagian awal URL <code>accounts.google.com</code> tetap terlihat</li>
+            <li>Domain sebenarnya <code>malicious-site.com</code> tersembunyi di ujung URL</li>
+            <li>Tidak ada indikasi visual bahwa ini adalah halaman palsu</li>
+        </ul>
+        <p><strong>Referensi:</strong> CVE-2026-44659, Penelitian Address Bar Spoofing Taxonomy[citation:2][citation:11]</p>
+    </div>
 </body>
 </html>
