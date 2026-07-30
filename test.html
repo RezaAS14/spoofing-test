@@ -1,122 +1,131 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FROST Attack Demo - POC</title>
+    <title>BlobPhish via GitHub - Demo</title>
     <style>
-        body { font-family: Arial; padding: 20px; max-width: 700px; margin: 0 auto; background: #0a0a1a; color: #e0e0e0; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #00ff88; color: #0a0a1a; border: none; border-radius: 4px; font-weight: bold; }
+        body { font-family: Arial; max-width: 700px; margin: 20px auto; padding: 20px; background: #0a0a1a; color: #e0e0e0; }
+        button { padding: 12px 24px; font-size: 16px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; }
         #output { background: #1a1a2e; color: #00ff88; padding: 15px; border-radius: 5px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; font-size: 13px; border: 1px solid #333; }
-        .warning { color: #ff6b6b; font-weight: bold; }
-        .info { background: #1a2a3a; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #00ff88; }
-        h1 { color: #00ff88; }
-        .highlight { color: #ffd93d; }
+        .warning { color: #ffd93d; font-weight: bold; }
+        .info { background: #1a2a3a; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ff6b6b; }
     </style>
 </head>
 <body>
-    <h1>🔬 FROST Attack - Proof of Concept</h1>
+    <h1>🔬 BlobPhish via GitHub - Demo</h1>
     <div class="info">
         <strong>⚠️ STATUS:</strong> <span class="warning">BELUM ADA CVE</span> — 
-        Google, Mozilla, dan Apple telah diberitahu tetapi <span class="warning">tidak menganggap ini sebagai security vulnerability</span> [citation:3]
+        Kampanye aktif sejak Oktober 2024 via GitHub Infrastructure
     </div>
-    <p>Demo ini <span class="highlight">mensimulasikan</span> bagaimana situs web dapat melacak 
-    aplikasi yang sedang berjalan hanya dari timing SSD menggunakan OPFS.</p>
     
-    <button onclick="runFROSTDemo()">▶ Start FROST Simulation</button>
+    <button onclick="simulateBlobPhish()">▶ Simulasi Serangan</button>
     <div id="output">Klik tombol untuk memulai simulasi...</div>
 
     <script>
-        async function runFROSTDemo() {
+        function simulateBlobPhish() {
             const output = document.getElementById('output');
-            output.textContent = '⏳ Memulai simulasi FROST attack...\n';
+            output.innerHTML = '⏳ Memulai simulasi BlobPhish via GitHub...\n';
 
             try {
-                // Simulasi pembuatan file OPFS > RAM
-                const fileSize = 1024 * 1024 * 100; // 100MB simulasi
-                const largeData = new Uint8Array(fileSize);
-                
-                output.textContent += '📁 Membuat file OPFS berukuran 100MB (simulasi)...\n';
-                output.textContent += '   (Dalam serangan nyata: file dibuat > kapasitas RAM)\n\n';
-                
-                // Simulasi repeated reads dan pengukuran timing
-                const timings = [];
-                const iterations = 50;
-                
-                output.textContent += `⏱️ Melakukan ${iterations} pengukuran timing...\n`;
-                
-                for (let i = 0; i < iterations; i++) {
-                    const start = performance.now();
-                    const index = Math.floor(Math.random() * fileSize);
-                    const _value = largeData[index] || 0;
-                    const end = performance.now();
-                    timings.push(end - start);
-                }
+                // Simulasi payload yang disimpan di GitHub
+                const githubPayload = `
+                // Ini adalah payload yang diunggah melalui GitHub Issue/Comment
+                (function() {
+                    const phishingHTML = \`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Microsoft 365 - Sign in</title>
+                        <style>
+                            body { font-family: 'Segoe UI', Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+                            .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; }
+                            h1 { font-size: 24px; color: #333; }
+                            input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+                            button { width: 100%; padding: 12px; background: #0078d4; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+                            .warning-demo { background: #fff3cd; padding: 10px; border-radius: 4px; font-size: 12px; color: #856404; margin-top: 15px; }
+                            .footer { font-size: 12px; color: #666; margin-top: 20px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="login-box">
+                            <h1>🔐 Sign in to Microsoft 365</h1>
+                            <p>Enter your credentials to continue</p>
+                            <input type="text" placeholder="Email, phone, or Skype">
+                            <input type="password" placeholder="Password">
+                            <button onclick="alert('⚠️ DEMO: Kredensial Anda akan dicuri!')">Sign in</button>
+                            <div class="warning-demo">
+                                ⚠️ INI ADALAH DEMO PHISHING - Jangan masukkan kredensial asli!
+                            </div>
+                            <div class="footer">Perhatikan address bar: ini adalah blob: URI</div>
+                        </div>
+                    </body>
+                    </html>
+                    \`;
 
-                // Analisis timing
-                const avgTiming = timings.reduce((a, b) => a + b, 0) / timings.length;
-                const minTiming = Math.min(...timings);
-                const maxTiming = Math.max(...timings);
-                const stdDev = Math.sqrt(timings.reduce((a, b) => a + Math.pow(b - avgTiming, 2), 0) / timings.length);
-
-                // Simulasi deteksi aktivitas
-                const hasActivity = maxTiming > avgTiming * 1.5;
-                const activityType = hasActivity ? 
-                    '🔴 <span class="warning">DETEKSI: Aktivitas aplikasi/situs lain terdeteksi!</span>' : 
-                    '🟢 Tidak ada aktivitas signifikan terdeteksi';
-
-                output.innerHTML += `
-╔═══════════════════════════════════════════════════════════════════════╗
-║                        FROST ATTACK REPORT                           ║
-╠═══════════════════════════════════════════════════════════════════════╣
-║                                                                      ║
-║ 📊 TIMING STATISTICS (ms):                                           ║
-║   Average: ${avgTiming.toFixed(3)}ms                                  ║
-║   Minimum: ${minTiming.toFixed(3)}ms                                  ║
-║   Maximum: ${maxTiming.toFixed(3)}ms                                  ║
-║   Std Dev: ${stdDev.toFixed(3)}ms                                     ║
-║                                                                      ║
-║ 🎯 DETECTION:                                                        ║
-║   ${activityType}                                                    ║
-║                                                                      ║
-║ ⚠️ KERENTANAN:                                                       ║
-║   - Menggunakan OPFS (Origin Private File System)                   ║
-║   - Tidak memerlukan izin pengguna                                  ║
-║   - Berjalan di latar belakang tanpa indikasi                       ║
-║   - Akurasi: 88.95% untuk top 50 situs web                         ║
-║   - Akurasi: 95.83% untuk aplikasi macOS native                     ║
-║                                                                      ║
-║ 📌 STATUS CVE:                                                       ║
-║   ❌ <span class="warning">BELUM ADA CVE</span>                                                ║
-║   Google: Tidak dianggap sebagai security vulnerability            ║
-║   Apple: Dianggap "out of scope"                                   ║
-║   Mozilla: Mengakui tetapi belum ada fix                          ║
-║                                                                      ║
-║ 🔗 REFERENSI:                                                        ║
-║   - Paper: DIMVA 2026                                               ║
-║   - The Hacker News (June 2026)                                    ║
-║                                                                      ║
-╚═══════════════════════════════════════════════════════════════════════╝
-
-📋 <span class="highlight">CARA KERJA FROST</span>:
-1. Situs membuka OPFS dan membuat file > kapasitas RAM
-2. File dibaca berulang kali dengan JavaScript
-3. Waktu baca diukur dengan performance.now()
-4. Saat aplikasi/situs lain mengakses drive yang sama, timing berubah
-5. Neural network mengidentifikasi aktivitas dari pola timing
-
-🛡️ <span class="highlight">MITIGASI SEMENTARA</span>:
-- Tutup tab setelah selesai menggunakan situs
-- Sistem Linux dengan profile-sync-daemon terlindungi secara kebetulan [citation:3]
-- Browser perlu: membatasi OPFS, throttling high-res timers, atau permission prompt [citation:3]
+                    const blob = new Blob([phishingHTML], { type: 'text/html' });
+                    const blobURL = URL.createObjectURL(blob);
+                    window.location.href = blobURL;
+                })();
                 `;
 
-                if (hasActivity) {
-                    const apps = ['Chrome', 'Spotify', 'Discord', 'Finder', 'Terminal', 'Safari', 'VS Code'];
-                    const detected = apps[Math.floor(Math.random() * apps.length)];
-                    output.innerHTML += `\n\n🔍 <span class="highlight">SIMULASI:</span> Aktivitas terdeteksi → kemungkinan besar "${detected}" sedang berjalan.`;
+                // Simulasi: payload dijalankan dari GitHub
+                const blobFromGithub = new Blob([githubPayload], { type: 'application/javascript' });
+                const scriptURL = URL.createObjectURL(blobFromGithub);
+
+                output.innerHTML += `
+╔═══════════════════════════════════════════════════════════════════╗
+║                    BLOBPHISH VIA GITHUB REPORT                   ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║ 📍 SUMBER:                                                       ║
+║   - Diunggah via GitHub Issue/Comment                           ║
+║   - Repository terkenal (UsTaxes, HMRC, InlandRevenue)          ║
+║   - Issue/Comment dihapus, link tetap aktif                     ║
+║                                                                  ║
+║ 🔗 LINK PHISHING:                                                ║
+║   https://github.com/[trusted-repo]/files/payload.js           ║
+║                                                                  ║
+║ 🎯 TEKNIK SPOOFING:                                              ║
+║   - Payload dijalankan → membuat Blob URL                       ║
+║   - blobs:https://login.microsoftonline.com/...                ║
+║   - Korban mengira sedang di situs asli                         ║
+║                                                                  ║
+║ ⚠️ STATUS CVE:                                                   ║
+║   ❌ BELUM ADA CVE                                               ║
+║   Kampanye aktif: Oktober 2024 - sekarang                       ║
+║   Target: Microsoft 365, institusi keuangan                     ║
+║                                                                  ║
+║ 📚 REFERENSI:                                                    ║
+║   - Cofense Research (Okt 2024)                                ║
+║   - The Hacker News                                             ║
+║   - HEAL Security Inc.                                         ║
+║                                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📋 <span class="warning">ALUR SERANGAN</span>:
+1. Korban menerima email phishing dengan link GitHub
+2. Link mengarah ke payload di GitHub Issue/Comment
+3. Payload membuat Blob object di browser
+4. Browser menavigasi ke blob: URL dengan domain palsu
+5. Korban melihat halaman login palsu di address bar yang meyakinkan
+6. Kredensial dikirim ke server penyerang
+7. Jejak dihapus (revokeObjectURL)
+
+🛡️ <span class="warning">CARA MELINDUNGI DIRI</span>:
+- Periksa address bar - blob: adalah tanda bahaya
+- Waspada link GitHub di email yang tidak diminta
+- Gunakan MFA phishing-resistant (FIDO2/hardware keys)
+                `;
+
+                // Jalankan payload simulasi di tab baru
+                const newWindow = window.open(scriptURL, '_blank');
+                if (newWindow) {
+                    output.innerHTML += '\n\n✅ Halaman phishing berhasil dibuka. Perhatikan address bar!';
+                } else {
+                    output.innerHTML += '\n\n⚠️ Gagal membuka window. Mungkin diblokir oleh browser Anda.';
                 }
 
             } catch (error) {
-                output.textContent = `❌ Error: ${error.message}\n\nFitur OPFS mungkin belum didukung sepenuhnya di browser ini.`;
+                output.innerHTML = `❌ Error: ${error.message}`;
             }
         }
     </script>
